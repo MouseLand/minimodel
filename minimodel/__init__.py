@@ -1,0 +1,1 @@
+# minimodel/__init__.py
