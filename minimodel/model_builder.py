@@ -284,6 +284,8 @@ def create_model_name(mouse_name, expdate, n_layers, in_channels, clamp=True, us
             model_save_name += f'_hs{hs_readout:.0e}'
     if suffix:
         model_save_name += f'_{suffix}'
+    if mouse_name == 'FX20':
+        model_save_name += '_xrange_176'
     if seed != 1:
         model_save_name += f'_seed{seed}'
     model_path = model_save_name + '.pt'

@@ -23,16 +23,16 @@ img_file_name = ['nat60k_text16_old.mat', # nat60k images and text16 images are 
                  'nat60k_text16.mat',
                  'nat60k_text16.mat']
 
-def load_images(root, file='nat60k_text16.mat', downsample=1, xrange=[0,130], normalize=True, crop=True):
+def load_images(root, mouse_id, file='nat60k_text16.mat', downsample=1, normalize=True, crop=True):
     """ 
     load images from mat file.
 
     Parameters:
     ----------
         root (str): The root directory containing the .mat file.
+        mouse_id (int): id of the mouse.
         file (str): The name of the .mat file to load. Default is 'nat60k_text16.mat'.
         downsample (int): Factor by which to downsample the images. Default is 1 (no downsampling).
-        xrange (list): The range of x-coordinates to keep after cropping. Default is [0, 130].
         normalize (bool): Whether to normalize the images. Default is True.
         crop (bool): Whether to crop the images (only keep the left and center screen). Default is True.
 
@@ -46,17 +46,19 @@ def load_images(root, file='nat60k_text16.mat', downsample=1, xrange=[0,130], no
     n_stim, Ly, Lx = img.shape
     print('raw image shape: ', img.shape)
 
+    if mouse_id == 5: xrange = [46, 176]
+    else: xrange = [0, 130]
+
     img = np.array([cv2.resize(im, (int(Lx//downsample), int(Ly//downsample))) for im in img])
     if crop:
         img = img[:,:,:int(176//downsample)] # keep left and middle screen
         xrange = [int(xrange[0]//downsample), int(xrange[1]//downsample)]
         img = img[:,:,xrange[0]:xrange[1]] # crop image based on RF locations
         print('cropped image shape: ', img.shape)
-    print('image mean: ', img.mean())
-    print('image std: ', img.std())
     if normalize:
         img -= img.mean()
         img /= img.std()
+    print('img: ', img.shape, img.min(), img.max(), img.dtype)
     return img
 
 def load_neurons(file_path, mouse_id = None, fixtrain=False):
@@ -133,7 +135,6 @@ def split_train_val(istim_train, train_frac=0.9):
         Indices for the validation set.
     '''
     print('\nsplitting training and validation set...')
-    print('there is currently no randomness in this function now, please make sure the istim_train is in random order!')
     np.random.seed(0)
     itrain = np.arange(len(istim_train))
     val_interval = int(1/(1-train_frac))
