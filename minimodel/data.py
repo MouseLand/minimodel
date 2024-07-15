@@ -16,9 +16,9 @@ mouse_names = ['L1_A5', 'L1_A1',  'FX9', 'FX10', 'FX8', 'FX20']
 exp_date = ['022723', '030623', '051523', '051623', '051623', '092923']
 NNs = [6636,6055,3575,4792,5804,2746] # total number of neurons
 NNs_valid = [4242,2840,926,3040,2217,1239] # number of neurons with FEV>0.15
-img_file_name = ['nat60k_text16_old.mat', # nat60k images and text16 images are original images
-                 'nat60k_text16_old.mat',
-                 'nat60k_text16.mat',# nat60k images are original images, text16 images are rezscored to match nat60k mean and std
+img_file_name = ['nat60k_text16.mat', 
+                 'nat60k_text16.mat',
+                 'nat60k_text16.mat',
                  'nat60k_text16.mat',
                  'nat60k_text16.mat',
                  'nat60k_text16.mat']
