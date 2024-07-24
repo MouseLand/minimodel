@@ -20,7 +20,7 @@ class Core(nn.Module):
         self.activation = activation
         self.avgpool = avgpool
         self.spatial_nconv = spatial_nconv
-        if (len(n_channels) > 2):
+        if (len(n_channels) > 1):
             self.add_layers(n_channels, kernel_size, stride, out_channels, separable=depth_separable, batchnorm=batchnorm)
         self.apply(self.init_weights)
         # initialize conv0 with one-layer model

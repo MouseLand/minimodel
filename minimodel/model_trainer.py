@@ -105,9 +105,9 @@ def train_epoch(model, optimizer, img_train, spks_train, epoch=0, batch_size=100
     train_loss /= n_train
     return train_loss
 
-def train(model, spks_train, spks_val, img_train, img_val, l2_readout=0.1, hs_readout=0, clamp=True, device='cuda', n_epochs_period=[100, 30, 30, 30]):
+def train(model, spks_train, spks_val, img_train, img_val, l2_readout=0.1, hs_readout=0, clamp=True, device='cuda', n_epochs_period=[100, 30, 30, 30], batch_size=100):
     import time
-    batch_size = 100
+    # batch_size = 100
     detach_core = False
 
     n_periods = 4
