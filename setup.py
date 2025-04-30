@@ -1,11 +1,11 @@
 import setuptools
 from setuptools import setup
 
-install_deps = ['numpy>=1.20.0, <1.27.0', 'scipy==1.10.1', 
-                'torch>=1.13.1, <2.3.0',
+install_deps = ['numpy>=1.20.0', 'scipy>=1.10.1', 
+                'torch>=1.13.1, <2.7.0',
                 'opencv-python-headless',
                 'ipykernel>=6.15.0',
-                'ipython>=8.13, <8.19'
+                'matplotlib>=3.7.0',
                 ]
 
 try:

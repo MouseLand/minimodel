@@ -2,6 +2,13 @@
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter
 
+conv1_isort_all = [[13,5,6,15,10,12,2,12,1,3,9,14,7,0,11,4], 
+        [0,13,15,8, 14,2,11,9,7,5,1,4,6,12,3,10],
+        [10,9,4,12,6,7,14,11,10,3,5,2,13,15,0,1],
+        [14,3,0,4,5,12,11,10,6,7,8,9,13,15,1,2],
+        [11,3,15,10,8,6,12,2,13,5,4,7,14,1,0,9],
+        [0,9,12,1,5,7,6,15,14,13,3,8,10,11,4,2]]
+
 def weight_bandwidth(w, return_peak=False):
     '''
     Calculate the bandwidth of the weights.

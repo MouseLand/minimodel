@@ -43,25 +43,35 @@ def load_images(root, mouse_id, file='nat60k_text16.mat', downsample=1, normaliz
     path = os.path.join(root, file)
     dstim = loadmat(path, squeeze_me=True) # stimulus data
     img = np.transpose(dstim['img'], (2,0,1)).astype('float32')
+    del dstim
     n_stim, Ly, Lx = img.shape
     print('raw image shape: ', img.shape)
 
     if mouse_id == 5: xrange = [46, 176]
     else: xrange = [0, 130]
 
-    img = np.array([cv2.resize(im, (int(Lx//downsample), int(Ly//downsample))) for im in img])
     if crop:
-        img = img[:,:,:int(176//downsample)] # keep left and middle screen
-        xrange = [int(xrange[0]//downsample), int(xrange[1]//downsample)]
         img = img[:,:,xrange[0]:xrange[1]] # crop image based on RF locations
         print('cropped image shape: ', img.shape)
+
+    # img = np.array([cv2.resize(im, (int(Lx//downsample), int(Ly//downsample))) for im in img])
+    n_stim, Ly, Lx = img.shape
+    new_Ly, new_Lx = int(Ly // downsample), int(Lx // downsample)
+    img_ds = np.empty((n_stim, new_Ly, new_Lx), dtype=np.float32)
+
+    for i in range(n_stim):
+        img_ds[i] = cv2.resize(img[i], (new_Lx, new_Ly))
+
+    img = img_ds
+
     if normalize:
-        img -= img.mean()
-        img /= img.std()
+        mean = img.mean()
+        std = img.std()
+        img = (img - mean) / std
     print('img: ', img.shape, img.min(), img.max(), img.dtype)
     return img
 
-def load_neurons(file_path, mouse_id = None, fixtrain=False):
+def load_neurons(file_path, mouse_id = None, fixtrain=False, return_iplane=False):
     '''
     load neurons of nat60k_text16 recordings.
     file_path: path to the preprocessed file from combine_stim.ipynb file.
@@ -101,6 +111,7 @@ def load_neurons(file_path, mouse_id = None, fixtrain=False):
     spks = dat['sp']
     istim_sp = (dat['istim_sp']).astype('int')
     istim_ss = (dat['istim_ss']).astype('int')
+    iplane = (dat['iplane']).astype('int')
 
     if fixtrain:
         idx = np.where(istim_sp<30000)[0]
@@ -111,6 +122,8 @@ def load_neurons(file_path, mouse_id = None, fixtrain=False):
         istim_sp = istim_sp[idx]
         spks = spks[:,idx]
     spks = spks.T
+    if return_iplane:
+        return spks, istim_sp, istim_ss, xpos, ypos, spks_rep_all, iplane
     return spks, istim_sp, istim_ss, xpos, ypos, spks_rep_all
 
 def split_train_val(istim_train, train_frac=0.9):

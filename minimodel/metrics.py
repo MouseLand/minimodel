@@ -2,6 +2,88 @@
 import numpy as np
 from scipy.stats import zscore
 
+def fev_nan(spks):
+    """
+    Calculate the fraction of explainable variance (FEV) for each neuron.
+
+    Parameters:
+    ----------
+    spks : list of numpy.ndarray
+        List of n_images arrays, each of shape (n_repeats, n_neurons), where 
+        different images might have different numbers of repeats.
+
+    Returns:
+    -------
+    fev : numpy.ndarray, shape (n_neurons,)
+        Fraction of explainable variance for each neuron.
+    """
+    n_images = len(spks)
+
+    # calculate total variance of each neuron
+    total_var = np.nanvar(np.vstack(spks), axis=0, ddof=1) # shape (n_neurons,)
+    # print(total_var)
+
+    # calculate noise variance and variance explained of each neuron
+    noise_var = []
+    for i in range(n_images):
+        noise_var.append(np.nanvar(spks[i], axis=0, ddof=1))
+    # print(noise_var)
+    # noise_var = np.vstack(noise_var).mean(axis=0) # shape (n_neurons,)
+    noise_var = np.nanmean(np.vstack(noise_var), axis=0)
+    # print(noise_var)
+    
+    # calculate explainable variance of each neuron
+    fev = (total_var - noise_var) / total_var # shape (n_neurons,)
+
+    return fev
+
+
+def feve_nan(spks, spks_pred, multi_repeats=True):
+    """
+    Calculate the fraction of explainable variance (FEV) and the fraction of explainable variance explained (FEVE) for each neuron.
+
+    Parameters:
+    ----------
+    spks : list of numpy.ndarray
+        List of n_images arrays, each of shape (n_repeats, n_neurons), where 
+        different images might have different numbers of repeats.
+    spks_pred : numpy.ndarray
+        Array of predicted activities, of shape (n_images, n_neurons).
+    multi_repeats : bool, optional
+        If True, account for multiple repeats in the noise variance calculation. Default is True.
+
+    Returns:
+    -------
+    fev : numpy.ndarray, shape (n_neurons,)
+        Fraction of explainable variance for each neuron.
+    feve : numpy.ndarray, shape (n_neurons,)
+        Fraction of explainable variance explained for each neuron.
+    """
+    n_images = len(spks)
+
+    # calculate total variance of each neuron
+    total_var = np.nanvar(np.vstack(spks), axis=0, ddof=1) # shape (n_neurons,)
+
+    # calculate noise variance and variance explained of each neuron
+    mse = []
+    noise_var = []
+    for i in range(n_images):
+        mse.append((spks[i] - spks_pred[i])**2)
+        noise_var.append(np.nanvar(spks[i], axis=0, ddof=1))
+    mse = np.nanmean(np.vstack(mse), axis=0) # shape (n_neurons,)
+    noise_var = np.nanmean(np.vstack(noise_var), axis=0) # shape (n_neurons,)
+
+    if not multi_repeats: noise_var = 0
+    
+    # calculate explainable variance of each neuron
+    fev = (total_var - noise_var) / total_var # shape (n_neurons,)
+
+    # calculate explainable variance explained of each neuron
+    feve = 1 - (mse - noise_var)/ (total_var - noise_var) # shape (n_neurons,)
+
+    return fev, feve
+
+
 def fev(spks):
     """
     Calculate the fraction of explainable variance (FEV) for each neuron.

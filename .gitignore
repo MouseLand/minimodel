@@ -3,6 +3,7 @@
 
 # results
 *.npz
+*.zip
 
 # checkpoints
 *.pt

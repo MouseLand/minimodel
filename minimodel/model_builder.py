@@ -233,11 +233,12 @@ class Encoder(nn.Module):
 
 def build_model(NN, input_Ly=66, input_Lx=130, n_layers=2, n_conv=16, n_conv_mid=320, use_sensorium_normalization=True, \
     pool=True, depth_separable=True, avgpool=False, use_bn=True, kernel_size = [25, 9], \
-    spatial_nconv=False, lessconv=None, minimodel_activation='relu', Wc_coef=0.01, activation='elu'):
+    spatial_nconv=False, lessconv=None, minimodel_activation='relu', Wc_coef=0.01, activation='elu', stride=1):
     if use_sensorium_normalization: loss_function = 'poisson'
     else: loss_function = 'mse'
 
     dense = False
+    # if stride is None:
     if pool: stride = 1
     else: stride = 2 
     in_channels = [1, n_conv]
@@ -254,7 +255,13 @@ def build_model(NN, input_Ly=66, input_Lx=130, n_layers=2, n_conv=16, n_conv_mid
     else:
         core = Core(in_channels, kernel_size, stride, 
                                 dense=dense, depth_separable=depth_separable, pool=pool, spatial_nconv=spatial_nconv, activation=activation, batchnorm=use_bn, avgpool=avgpool)
-    in_shape = (in_channels[-1], input_Ly//2, input_Lx//2)
+    # if pool or (stride == 2):
+    tmp_img = torch.zeros((1, 1, input_Ly, input_Lx))
+    core_shape = core(tmp_img).shape
+    in_shape = (in_channels[-1], core_shape[-2], core_shape[-1])
+    print('core shape: ', core_shape)
+    # else:
+    #     in_shape = (in_channels[-1], input_Ly, input_Lx)
     print('input shape of readout: ', in_shape)
 
     readout = Readout(in_shape, NN, rank=1,
@@ -265,7 +272,7 @@ def build_model(NN, input_Ly=66, input_Lx=130, n_layers=2, n_conv=16, n_conv_mid
 
 
 def create_model_name(mouse_name, expdate, n_layers, in_channels, clamp=True, use_sensorium_normalization=True, depth_separable=True, \
-                      ineuron=-1, seed=1, suffix=False, hs_readout=0.0):
+                      ineuron=-1, seed=1, suffix=False, hs_readout=0.0, pool=True):
     if mouse_name == 'L1_A1': mouse_name = 'l1a1'
     elif mouse_name == 'L1_A5': mouse_name = 'l1a5'
     model_save_name = f'{mouse_name}_{expdate}_{n_layers}layer'
@@ -277,7 +284,8 @@ def create_model_name(mouse_name, expdate, n_layers, in_channels, clamp=True, us
         model_save_name += '_norm'
     if depth_separable:
         model_save_name += '_depthsep'
-    model_save_name += '_pool'
+    if pool:
+        model_save_name += '_pool'
     if ineuron >= 0: # for minimodel
         model_save_name += f'_nn{ineuron}'
         if hs_readout > 0:
@@ -292,3 +300,55 @@ def create_model_name(mouse_name, expdate, n_layers, in_channels, clamp=True, us
     print('model name: ', model_path)
     return model_path
 
+def create_model_name_old(mouse_name, expdate, n_layers, in_channels, clamp=True, multikernel=False, multikernel_sizes=None, img_downsample=1, \
+    use_sensorium_normalization=True, gabor=False, rank=1, depth_separable=True, pool=True, ineuron=-1, pretrained64=False, seed=1, \
+    suffix=False, avgpool=False, spatial_nconv=False, kernel_size=[25, 9], wc_coef=0.01, lessconv=None, pretrained_conv1=True, wc_fixed=False, \
+    gabor_init=0.1):
+    if mouse_name == 'L1_A1': mouse_name = 'l1a1'
+    elif mouse_name == 'L1_A5': mouse_name = 'l1a5'
+    model_save_name = f'{mouse_name}_{expdate}_{n_layers}layer'
+    for nc in in_channels[1:]:
+        model_save_name += f'_{nc}'
+    if spatial_nconv > 0:
+        model_save_name += f'_spatial{spatial_nconv}'
+    if kernel_size != [25, 9]:
+        for k in kernel_size:
+            model_save_name += f'_{k}'
+    if clamp:
+        model_save_name += '_clamp'
+    if multikernel:
+        model_save_name += '_multikernel'
+        for k in multikernel_sizes:
+            model_save_name += f'_{k}'
+    if img_downsample > 1:
+        model_save_name += f'_downsample{img_downsample}'
+    if use_sensorium_normalization:
+        model_save_name += '_sensorium'
+    if gabor:
+        model_save_name += f'_gabor{gabor_init:.0e}'
+    if rank > 1:
+        model_save_name += f'_Wc-rank{rank}'
+    if depth_separable:
+        model_save_name += '_depthsep'
+    if pool:
+        if avgpool:
+            model_save_name += '_avgpool'
+        else:
+            model_save_name += '_pool'
+    if ineuron >= 0:
+        model_save_name += f'_nn{ineuron}_seed{seed}'
+        if pretrained64:
+            model_save_name += '_pretrained64'
+        elif pretrained_conv1:
+            model_save_name += '_pretrained'
+        if lessconv != False:
+            model_save_name += '_lessconv2_elu'
+    if wc_coef != 0.01:
+        model_save_name += f'_wc{wc_coef:.0e}'
+    if wc_fixed:
+        model_save_name += '_wcfixed'
+    if suffix:
+        model_save_name += f'_{suffix}'
+    model_path = model_save_name + '.pt'
+    print('model name: ', model_path)
+    return model_path

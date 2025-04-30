@@ -154,7 +154,7 @@ def train(model, spks_train, spks_val, img_train, img_val, l2_readout=0.1, hs_re
     return best_state_dict
 
 def monkey_val_epoch(model, img_train, spks_train, real_spks_train, batch_size=100, device = torch.device('cuda'), \
-                       detach_core=False, hs_reg=0):
+                       detach_core=False, hs_reg=0, epsilon = 1e-6):
     model.eval()
     train_loss = 0
     n_train, n_neurons = spks_train.shape
@@ -166,7 +166,7 @@ def monkey_val_epoch(model, img_train, spks_train, real_spks_train, batch_size=1
             imgs_batch = img_train[k:kend].to(device)
             rresp_batch = real_spks_train[k:kend].to(device)
             spks_pred = model(imgs_batch, detach_core=detach_core)
-            loss = ((spks_pred - res_batch * torch.log(spks_pred))*rresp_batch).sum(axis=0) / rresp_batch.sum(axis=0)
+            loss = ((spks_pred - res_batch * torch.log(spks_pred))*rresp_batch).sum(axis=0) / (rresp_batch.sum(axis=0) + epsilon)
             loss += hs_reg * model.readout.hoyer_square()
             loss = loss.mean()
             train_loss += loss.item()
@@ -176,13 +176,14 @@ def monkey_val_epoch(model, img_train, spks_train, real_spks_train, batch_size=1
     spks_train_nan = np.where(real_spks_train, spks_train, np.nan)
     varexp = np.nansum((spks_train_nan - spks_train_pred)**2, axis=0)
     spks_train -= np.nanmean(spks_train, axis=0)
+    denom = np.nansum(spks_train**2, axis=0)
     varexp /= np.nansum(spks_train**2, axis=0)
     varexp = 1 - varexp
-
+    varexp[denom == 0] = 0
     return train_loss, varexp
 
 def monkey_train_epoch(model, optimizer, img_train, spks_train, real_spks_train, epoch=0, batch_size=100, device = torch.device('cuda'), \
-                       detach_core=False, hs_reg=0):
+                       detach_core=False, hs_reg=0, epsilon = 1e-6):
     n_train = img_train.shape[0]
     np.random.seed(epoch)
     iperm = np.random.permutation(n_train)
@@ -194,7 +195,7 @@ def monkey_train_epoch(model, optimizer, img_train, spks_train, real_spks_train,
         imgs_batch = img_train[iperm[k:kend]].to(device)
         rresp_batch = real_spks_train[iperm[k:kend]].to(device)
         spks_pred = model(imgs_batch, detach_core=detach_core)
-        loss = ((spks_pred - res_batch * torch.log(spks_pred))*rresp_batch).sum(axis=0) / rresp_batch.sum(axis=0)
+        loss = ((spks_pred - res_batch * torch.log(spks_pred))*rresp_batch).sum(axis=0) / (rresp_batch.sum(axis=0) + epsilon)
         loss += hs_reg * model.readout.hoyer_square()
         loss = loss.mean()
         loss.backward()
@@ -206,13 +207,12 @@ def monkey_train_epoch(model, optimizer, img_train, spks_train, real_spks_train,
     return train_loss
 
 def monkey_train(model, train_responses, train_real_responses, val_responses, val_real_responses, train_images, val_images, \
-                 hs_readout=0, l2_readout=0.1, device='cuda', weight_decay_core=0.1):
-    batch_size = 100
+                 hs_readout=0, l2_readout=0.1, device='cuda', weight_decay_core=0.1, n_epochs_period=[100, 30, 30, 30], lr_init=1e-3, batch_size=100):
     detach_core = False
     n_periods = 4
     
     for i_period in range(n_periods):
-        lr = 1e-3 / (3 ** (i_period))
+        lr = lr_init / (3 ** (i_period))
         print(lr)
 
         restore = (i_period > 0)
@@ -223,7 +223,7 @@ def monkey_train(model, train_responses, train_real_responses, val_responses, va
 
         tic = time.time()
         
-        n_epochs = 100 if i_period == 0 else 30
+        n_epochs = n_epochs_period[i_period]
 
         optimizer = torch.optim.AdamW([{'params': model.core.parameters(), 'weight_decay': weight_decay_core},
                                     {'params': [model.readout.Wy, model.readout.Wx], 
@@ -246,6 +246,6 @@ def monkey_train(model, train_responses, train_real_responses, val_responses, va
                 print('nan loss')
                 break
 
-            if epoch%1==0 or epoch+1==n_epochs:
+            if epoch%5==0 or epoch+1==n_epochs:
                 print(f'epoch {epoch}, train_loss = {train_loss:0.4f}, val_loss = {val_loss:0.4f}, varexp_val = {varexp.mean():0.4f}, time {time.time()-tic:.2f}s')
     return best_state_dict
