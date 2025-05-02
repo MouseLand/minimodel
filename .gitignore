@@ -4,6 +4,7 @@
 # results
 *.npz
 *.zip
+*.npy
 
 # checkpoints
 *.pt

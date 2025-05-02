@@ -51,15 +51,15 @@ wget https://janelia.figshare.com/ndownloader/articles/28797638/versions/2
 This will download a zip file containing the mouse dataset. Unzip the file and place it in the `notebooks/data/` directory.
 
 ### Monkey dataset
-The data we used to train the monkey models is from the [paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006897) by Cadena, et al. For loading the monkey data, please check this github page ([link](https://github.com/sacadena/Cadena2019PlosCB)).
 
-Use `notebook/data/monkey_data.ipynb` to convert the monkey data to the format required by our models.
+The monkey data used to train our models comes from [Cadena et al. (2019)](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006897). To access and load this dataset, refer to the official GitHub repository: [Cadena2019PlosCB](https://github.com/sacadena/Cadena2019PlosCB).
 
+To convert the monkey data into the format compatible with our models, run the notebook [monkey_data.ipynb](https://github.com/MouseLand/minimodel/blob/main/notebooks/data/mouse_pipeline.ipynb).
 
 ### Sensorium Model
 
-To test the performance of the CNN Baseline model from the [paper](https://arxiv.org/abs/2206.08666) by Willeke, et al. on our dataset, follow these steps:
+To evaluate the CNN Baseline model from [Willeke et al. (2022)](https://arxiv.org/abs/2206.08666) on our dataset, follow these steps:
 
-1. Use the notebook `notebook/data/sensorium_format.ipynb` to convert our data to the format required by the Sensorium competition.
-2. Use the model training notebook from the Sensorium competition available at [this link](https://github.com/sinzlab/sensorium/blob/main/notebooks/model_tutorial/1a_model_training_sensorium.ipynb) to train the model.
+1. Use this notebook to convert our data to the Sensorium competition format: [sensorium_format.ipynb](https://github.com/MouseLand/minimodel/blob/main/notebooks/data/sensorium_format.ipynb)
 
+2. Train the model using the official Sensorium notebook: [1a_model_training_sensorium.ipynb](https://github.com/sinzlab/sensorium/blob/main/notebooks/model_tutorial/1a_model_training_sensorium.ipynb)
