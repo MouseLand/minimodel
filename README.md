@@ -25,7 +25,7 @@ pip install -e .
 ```
 ## Example notebook
 [mouse_pipeline.ipynb](https://github.com/MouseLand/minimodel/blob/main/notebooks/mouse_pipeline.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](
-https://colab.research.google.com/github/dufengtong/minimodel/blob/master/notebooks/mouse_pipeline.ipynb)
+https://colab.research.google.com/github/MouseLand/minimodel/blob/master/notebooks/mouse_pipeline.ipynb)
 : This notebook demonstrates how to use the minimodel module to train and test models on the mouse dataset. It includes data loading, fullmodel training and evaluation, and minimodel training and evaluation.
 
 
@@ -63,3 +63,7 @@ To evaluate the CNN Baseline model from [Willeke et al. (2022)](https://arxiv.or
 1. Use this notebook to convert our data to the Sensorium competition format: [sensorium_format.ipynb](https://github.com/MouseLand/minimodel/blob/main/notebooks/data/sensorium_format.ipynb)
 
 2. Train the model using the official Sensorium notebook: [1a_model_training_sensorium.ipynb](https://github.com/sinzlab/sensorium/blob/main/notebooks/model_tutorial/1a_model_training_sensorium.ipynb)
+
+
+## Model Weights
+We offer the model weights for the 16-320 fullmodels of all mice, as well as minimodels for some example neurons. You can download them from the following link: [https://github.com/MouseLand/minimodel/releases/tag/V1.0.0](https://github.com/MouseLand/minimodel/releases/tag/V1.0.0). After downloading, place them in the `notebooks/checkpoints/` directory. 
