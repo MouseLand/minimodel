@@ -111,6 +111,8 @@ def train(model, spks_train, spks_val, img_train, img_val, l2_readout=0.1, hs_re
     detach_core = False
 
     n_periods = 4
+    patience = 5
+    epochs_since_best = 0
 
     for i_period in range(n_periods):
         lr = 1e-3 / (3 ** (i_period))
@@ -144,13 +146,23 @@ def train(model, spks_train, spks_val, img_train, img_val, l2_readout=0.1, hs_re
                                                                         batch_size=batch_size, 
                                                                         device=device)
             
-            if varexp.mean() > varexp_max:
+            if (varexp.mean() > varexp_max) and (not np.isnan(val_loss*train_loss)):
                 best_state_dict = copy_state(model)
                 varexp_max = varexp.mean()
+                epochs_since_best = 0
+            elif np.isnan(val_loss*train_loss): # prevent overfitting
+                print('nan loss')
+                break
+            else:
+                epochs_since_best += 1
 
             if epoch%5==0 or epoch+1==n_epochs:
                 # test_pred = test_epoch(model, img_test, spks_test, batch_size=batch_size, l1_readout=l1_readout, device=device)
                 print(f'epoch {epoch}, train_loss = {train_loss:0.4f}, val_loss = {val_loss:0.4f}, varexp_val = {varexp.mean():0.4f}, time {time.time()-tic:.2f}s')
+
+            if epochs_since_best >= patience:
+                print(f'Early stopping at epoch {epoch} due to no improvement in validation varexp.')
+                break
     return best_state_dict
 
 def monkey_val_epoch(model, img_train, spks_train, real_spks_train, batch_size=100, device = torch.device('cuda'), \
