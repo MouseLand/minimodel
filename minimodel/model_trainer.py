@@ -156,9 +156,7 @@ def train(model, spks_train, spks_val, img_train, img_val, l2_readout=0.1, hs_re
             else:
                 epochs_since_best += 1
 
-            if epoch%5==0 or epoch+1==n_epochs:
-                # test_pred = test_epoch(model, img_test, spks_test, batch_size=batch_size, l1_readout=l1_readout, device=device)
-                print(f'epoch {epoch}, train_loss = {train_loss:0.4f}, val_loss = {val_loss:0.4f}, varexp_val = {varexp.mean():0.4f}, time {time.time()-tic:.2f}s')
+            print(f'epoch {epoch}, train_loss = {train_loss:0.4f}, val_loss = {val_loss:0.4f}, varexp_val = {varexp.mean():0.4f}, time {time.time()-tic:.2f}s')
 
             if epochs_since_best >= patience:
                 print(f'Early stopping at epoch {epoch} due to no improvement in validation varexp.')
