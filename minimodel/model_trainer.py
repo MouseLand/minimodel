@@ -44,12 +44,12 @@ def val_epoch(model, img_test, spks_test, batch_size=100, l1_readout=0, l2_reado
     n_test, n_neurons = spks_test.shape
     test_loss = 0
     spks_test_pred = torch.zeros((n_test, n_neurons), device=device)
-    spks_test_gpu = spks_test.to(device)
+    # spks_test_gpu = spks_test.to(device)
     with torch.no_grad():
         for k in np.arange(0, n_test, batch_size):
             kend = min(k+batch_size, n_test)
             nb = kend - k
-            spks_batch = spks_test_gpu[k:kend]
+            spks_batch = spks_test[k:kend]
             img_batch = img_test[k:kend]
 
             spks_pred = model(img_batch)
@@ -64,9 +64,9 @@ def val_epoch(model, img_test, spks_test, batch_size=100, l1_readout=0, l2_reado
             spks_test_pred[k:kend] = spks_pred
         test_loss /=  n_test
 
-    varexp = ((spks_test_gpu - spks_test_pred)**2).sum(axis=0) 
-    spks_test_gpu -= spks_test_gpu.mean(axis=0)
-    varexp /= (spks_test_gpu**2).sum(axis=0)
+    varexp = ((spks_test - spks_test_pred)**2).sum(axis=0) 
+    spks_test -= spks_test.mean(axis=0)
+    varexp /= (spks_test**2).sum(axis=0)
     varexp = 1 - varexp
     test_pred = spks_test_pred.detach().clone()
 
@@ -83,7 +83,7 @@ def train_epoch(model, optimizer, img_train, spks_train, epoch=0, batch_size=100
         kend = min(k+batch_size, n_train)
         nb = kend - k
         
-        spks_batch = spks_train[iperm[k:kend]].to(device)
+        spks_batch = spks_train[iperm[k:kend]]
         img_batch = img_train[iperm[k:kend]]
 
         spks_pred = model(img_batch, detach_core=detach_core)
