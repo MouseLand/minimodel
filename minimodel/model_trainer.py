@@ -104,18 +104,17 @@ def train_epoch(model, optimizer, img_train, spks_train, epoch=0, batch_size=100
     train_loss /= n_train
     return train_loss
 
-def train(model, spks_train, spks_val, img_train, img_val, l2_readout=0.1, hs_readout=0, clamp=True, device='cuda', n_epochs_period=[100, 30, 30, 30], batch_size=100):
+def train(model, spks_train, spks_val, img_train, img_val, l2_readout=0.1, hs_readout=0, clamp=True, device='cuda', n_epochs_period=[100, 30, 30, 30], batch_size=100, patience=5):
     import time
     # batch_size = 100
     detach_core = False
 
     n_periods = 4
-    patience = 5
     epochs_since_best = 0
 
     for i_period in range(n_periods):
         lr = 1e-3 / (3 ** (i_period))
-        print(lr)
+        print(f'Learning rate = {lr}')
 
         restore = (i_period > 0)
         if restore:
