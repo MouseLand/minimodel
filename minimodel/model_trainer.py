@@ -65,8 +65,7 @@ def val_epoch(model, img_test, spks_test, batch_size=100, l1_readout=0, l2_reado
         test_loss /=  n_test
 
     varexp = ((spks_test - spks_test_pred)**2).sum(axis=0) 
-    spks_test -= spks_test.mean(axis=0)
-    varexp /= (spks_test**2).sum(axis=0)
+    varexp /= ((spks_test-spks_test.mean(axis=0))**2).sum(axis=0)
     varexp = 1 - varexp
     test_pred = spks_test_pred.detach().clone()
 
